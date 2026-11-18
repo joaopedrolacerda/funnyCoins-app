@@ -32,9 +32,11 @@ Este repositório é só o app. O projeto tem três repositórios, normalmente l
 
 - Compilar: `BuildProject`, a ferramenta de build do Xcode.
 - Testar: `RunAllTests`. O esquema compartilhado `MyApp` inclui o target `MyAppTests`.
-- Se o teste acusar um símbolo inexistente que existe no app, compile o app primeiro.
-  O target de testes não tem dependência explícita do app.
-  O esquema compila em série para evitar isso.
+- Pelo terminal: `xcodebuild test -project funnycoins.xcodeproj -scheme MyApp -destination 'platform=macOS'`.
+  O `xcode-select` aponta para as Command Line Tools, então use `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer`.
+- O target do app se chama `funnycoins` e gera `funnycoins.app`, mas o módulo Swift continua `MyApp`
+  (`PRODUCT_MODULE_NAME`), por isso os testes usam `@testable import MyApp`. O `TEST_HOST` aponta para `funnycoins.app`.
+- `MyAppTests` depende explicitamente do target do app, então o app sempre compila antes dos testes.
 - Previews ajudam a verificar o visual com `RenderPreview`.
 
 ## Arquitetura

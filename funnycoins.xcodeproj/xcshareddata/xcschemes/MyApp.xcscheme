@@ -16,7 +16,7 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "000000000000000100000000"
                BuildableName = "funnycoins.app"
-               BlueprintName = "MyApp"
+               BlueprintName = "funnycoins"
                ReferencedContainer = "container:funnycoins.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -57,7 +57,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "000000000000000100000000"
             BuildableName = "funnycoins.app"
-            BlueprintName = "MyApp"
+            BlueprintName = "funnycoins"
             ReferencedContainer = "container:funnycoins.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -74,7 +74,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "000000000000000100000000"
             BuildableName = "funnycoins.app"
-            BlueprintName = "MyApp"
+            BlueprintName = "funnycoins"
             ReferencedContainer = "container:funnycoins.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

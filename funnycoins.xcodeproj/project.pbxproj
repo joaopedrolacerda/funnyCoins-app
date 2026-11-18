@@ -6,6 +6,16 @@
 	objectVersion = 90;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		CFF6C7F03097986C00440335 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 000000000000000100000000;
+			remoteInfo = funnycoins;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* funnycoins.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = funnycoins.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CFF6C7E83097986C00440335 /* MyAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MyAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -87,6 +97,9 @@
 			);
 			buildRules = (
 			);
+			dependencies = (
+				CFF6C7F13097986C00440335 /* PBXTargetDependency */,
+			);
 			fileSystemSynchronizedGroups = (
 				CFF6C7E93097986C00440335 /* MyAppTests */,
 			);
@@ -158,6 +171,14 @@
 			);
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		CFF6C7F13097986C00440335 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 000000000000000100000000 /* funnycoins */;
+			targetProxy = CFF6C7F03097986C00440335 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		000000000000000011000000 /* Debug configuration for PBXProject "funnycoins" */ = {
@@ -315,6 +336,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MARKETING_VERSION = 1.0;
+				PRODUCT_MODULE_NAME = MyApp;
 				PRODUCT_BUNDLE_IDENTIFIER = "devplaceholder.$(PROJECT_UNIQUE_VALUE:identifier).$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -353,6 +375,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MARKETING_VERSION = 1.0;
+				PRODUCT_MODULE_NAME = MyApp;
 				PRODUCT_BUNDLE_IDENTIFIER = "devplaceholder.$(PROJECT_UNIQUE_VALUE:identifier).$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -389,7 +412,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MyApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MyApp";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/funnycoins.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/funnycoins";
 				XROS_DEPLOYMENT_TARGET = 27.0;
 			};
 			name = Debug;
@@ -415,7 +438,7 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MyApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MyApp";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/funnycoins.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/funnycoins";
 				XROS_DEPLOYMENT_TARGET = 27.0;
 			};
 			name = Release;
