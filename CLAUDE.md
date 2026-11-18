@@ -1,7 +1,12 @@
-# MyApp: finanças pessoais gamificadas
+# MyApp: finanças pessoais gamificadas (app)
 
 App de gestão financeira em formato de jogo, com um bichinho virtual estilo Tamagotchi.
 A base de tudo é a **reserva de emergência**: só depois dela a pessoa passa a investir.
+
+Este repositório é só o app. O projeto tem três repositórios, normalmente lado a lado em `~/Documents/funnycoins/`:
+- `app/`: este, em `joaopedrolacerda/funnyCoins-app`.
+- `backend/`: API em Rust, em `joaopedrolacerda/funnyCoins-backend`.
+- `web/`: site em Svelte, em `joaopedrolacerda/funnycoins`.
 
 - Plataformas: iOS, iPadOS, macOS e visionOS 27, num único target multiplataforma.
 - Stack: SwiftUI + SwiftData. Sem Combine, use async/await.
@@ -32,52 +37,10 @@ A base de tudo é a **reserva de emergência**: só depois dela a pessoa passa a
   O esquema compila em série para evitar isso.
 - Previews ajudam a verificar o visual com `RenderPreview`.
 
-### Rust e site
-O Rust fica em `~/.cargo/bin`. Se `cargo` não for encontrado, rode `export PATH="$HOME/.cargo/bin:$PATH"`.
-- **Rust**: `cd rust && cargo test`. Os testes do backend usam o PostgreSQL local.
-  - O PostgreSQL roda com `brew services start postgresql@17`.
-  - O papel `myapp` tem `CREATEDB` e é dono do banco `myapp`.
-  - O `DATABASE_URL` padrão fica em `rust/.cargo/config.toml`.
-  - Cada `#[sqlx::test]` cria um banco temporário próprio.
-- **Lint**: `cargo clippy --all-targets` e `cargo fmt`, com largura de 120 definida em `rustfmt.toml`.
-- **WASM das regras**: `cd web && npm run rules`. Rode depois de qualquer mudança em `rust/rules`.
-  - **Atenção:** a pasta `rust/rules` sumiu em 13/11/2026 e saiu do workspace.
-    Enquanto ela não voltar, o site usa o WASM já gerado em `web/src/lib/rules/pkg`, que agora fica no git, e `npm run rules` não funciona.
-  O resultado vai para `web/src/lib/rules/pkg`, que é gerado e fica fora do git.
-- **Site**:
-  - `cd web && npm test` roda o Vitest. Os testes carregam o WASM real e rodam também os fixtures.
-  - `npm run check` roda o svelte-check e precisa terminar com 0 erros.
-  - `npm run build` gera o site.
-- **Rodar tudo localmente**:
-  1. `cd rust && ALLOW_DEV_LOGIN=true cargo run -p myapp-backend` sobe o backend na porta 8080.
-  2. `cd web && npm run dev` sobe o site na porta 5173. O Vite repassa `/v1` e `/health` para o backend.
-- **Servidor único**, como em produção:
-  1. `cd web && npm run build`.
-  2. `cd rust && STATIC_DIR=../web/dist cargo run -p myapp-backend` serve o site e a API juntos na porta 8080.
-
-## Publicar (Railway)
-
-- `Dockerfile` na raiz gera uma imagem só: compila o site, compila o backend e serve os dois na mesma porta.
-  `railway.json` aponta para ele e usa `/health` como verificação.
-- Testar a imagem localmente: `docker build -t myapp:local .` (o Docker fica em `/Applications/Docker.app/Contents/Resources/bin`).
-- No Railway:
-  1. Criar um projeto com um banco PostgreSQL e um serviço a partir do repositório (ou `railway up`).
-  2. Variáveis do serviço:
-     - `DATABASE_URL=${{Postgres.DATABASE_URL}}`
-     - `CLIENT_IP_HEADER=x-real-ip`
-     - Não defina `ALLOW_DEV_LOGIN` em produção.
-     - O Railway define `PORT` sozinho.
-  3. Gerar um domínio em Settings → Networking.
-- As migrações rodam sozinhas ao iniciar.
-- Publicado no projeto `charismatic-essence`, serviço `funnycoins`: https://funnycoins-production.up.railway.app
-  - Para publicar de novo: `railway up --service funnycoins --ci`.
-  - Sem git, o `railway up` ignora o `.gitignore` e o `.dockerignore`. Ele usa o `.railwayignore`.
-    Sem esse arquivo, o envio passa de 1 GB, por causa de `rust/target`, e falha.
-
 ## Arquitetura
 
 ```
-MyApp/
+funnycoins/
   Models/
     FinanceModels.swift   modelos SwiftData, enums, BRFormat
     GameEngine.swift      GameSnapshot: níveis, fluxo, XP, patentes, conquistas
@@ -97,72 +60,25 @@ MyApp/
     AppIconView.swift     arte do ícone do app
   Assets.xcassets/AppIcon.appiconset   PNG de 1024 para iOS e tamanhos do macOS
 MyAppTests/               testes com Swift Testing
-  Fixtures/rules-fixtures.json   casos das regras do jogo, compartilhados com o Rust
-shared/API.md             contrato da API entre app, backend e site
-rust/                     workspace Cargo
-  rules/                  regras do jogo em Rust: mesma especificação de GameEngine e PetEngine
-    src/game.rs           níveis, fluxo, XP, patentes, conquistas, GainPlan, situação das contas
-    src/pet.rs            necessidades, humor, evolução e falas
-    src/catalog.rs        valores crus dos enums e textos (categorias, modalidades, cores, dicas)
-    src/wasm.rs           funções exportadas para o site (feature "wasm"), JSON de entrada e saída
-    tests/fixtures.rs     lê rules-fixtures.json
-  backend/                Axum + SQLx + PostgreSQL
-    migrations/           esquema: users, identities, sessions, records
-    src/sync.rs           POST /v1/sync
-    src/auth.rs           login (código da conta, Apple, Google, dev), sessões, logout, exclusão de conta
-    src/identity.rs       validação dos JWT da Apple e do Google
-    tests/api.rs          testes da API contra o Postgres; keys/ tem a chave RSA só de teste
-web/                      site em Svelte 5 + Vite + TypeScript
-  src/lib/                lógica testável: store, sync, api, game (ponte WASM), actions, money, dates, pet
-  src/components/         Pet (bichinho em SVG), Icon, CurrencyInput, Modal, Ring, Bar, StepDots
-  src/views/              PetHome, Journey, CashFlow, Bills, Investments, Account
-  src/forms/              ProfileForm, GainWizard, EntryForm, BillForm, ReserveForm, InvestmentForm
+  Fixtures/rules-fixtures.json   casos das regras do jogo, compartilhados com o site
 ```
 
-### Site: regras
-- O site **não reimplementa regra do jogo**. Tudo vem do WASM de `rust/rules`, por `computeSnapshot` e `computeGainPlan` em `web/src/lib/game.ts`.
-  Regra nova vai para o Rust e entra nos fixtures quando couber. A mesma regra também precisa entrar no Swift.
-- Ações do jogador ficam em `web/src/lib/actions.ts`, fora das telas, e são testadas. Exemplos: salvar ganho, pagar conta, depositar.
-- Dinheiro é `number` inteiro em centavos. Para exibir, use `brl()`. Para digitar, use `CurrencyInput`, que lê com `centsFromTyping`.
-- Os dados ficam no `localStorage` no formato `SyncRecord` da API.
-  - `RecordStore` segue as mesmas regras do app: `update` avança `updatedAt`, `softDelete` só marca, e as telas usam `active()`.
-  - O perfil usado é o mais antigo.
-- O site funciona sem login. Com login, sincroniza 1,5 s depois de cada alteração, a cada minuto e ao voltar o foco.
-- **Login principal: código da conta.**
-  - `POST /v1/auth/code/new` cria a conta e devolve um código como `K7QM-4XPA-9RTD`.
-    São 12 caracteres de um alfabeto sem letras que se confundem (`23456789ABCDEFGHJKMNPQRSTWXYZ`).
-  - `POST /v1/auth/code` entra com o código. Aceita minúsculas, espaços e hífens.
-  - O servidor guarda só o hash SHA-256, em `identities` com `provider = 'code'`. Quem perder o código perde o acesso.
-  - O site guarda o código junto da sessão, no `localStorage`, para mostrá-lo na aba Conta.
-  - O formato fica em `web/src/lib/accountCode.ts` e precisa ser igual ao de `rust/backend/src/auth.rs`.
-- **Ícones do site**: SVG de traço fino com `currentColor`, por `<Icon name=... />`. Os desenhos ficam em `web/src/lib/icons.ts`, baseados no Lucide.
-  Não use emojis na interface.
-- Sair da conta mantém os dados no navegador. Excluir a conta apaga os dados no servidor e no navegador.
-- O desenho do bichinho em `Pet.svelte` reproduz `PetView.swift` com as mesmas frações. As formas ficam em `web/src/lib/pet.ts`.
-  Ao mudar a arte no app, mude no site também. O Filhote continua intocável.
-- Variáveis do site:
-  - `VITE_API_URL` aponta para o backend. Vazio usa o proxy do Vite.
-  - `VITE_GOOGLE_CLIENT_ID` liga o botão do Google.
-  - `VITE_DEV_LOGIN=true` mostra o login só pelo nome fora do modo dev.
-- Variáveis do backend: `DATABASE_URL`, `BIND` (ou só `PORT`), `APPLE_CLIENT_IDS`, `GOOGLE_CLIENT_IDS`, `ALLOW_DEV_LOGIN`,
-  `CORS_ORIGINS`, `STATIC_DIR` e `CLIENT_IP_HEADER`.
-- **Limite de tentativas**, por IP e em memória (`rust/backend/src/limit.rs`):
-  - criar conta: 10 por hora;
-  - entrar com código: 30 a cada 15 minutos.
-  - Atrás de um proxy, defina `CLIENT_IP_HEADER` (no Railway, `x-real-ip`). Sem isso, todos parecem vir do IP do proxy.
-- Com `STATIC_DIR` apontando para `web/dist`, o backend também serve o site, na mesma porta e na mesma origem, sem CORS.
-  - Caminhos que não são arquivos devolvem o `index.html`. Rotas desconhecidas em `/v1` respondem 404 em JSON.
-  - Sem `STATIC_DIR`, o backend serve só a API.
-  - Para atualizar o site, basta rodar `npm run build` de novo, sem recompilar o Rust.
+- `GameSnapshot` é calculado a cada renderização a partir das consultas do SwiftData em `MainTabView`.
+  XP, conquistas e humor **não são salvos**: são derivados dos dados. Isso mantém tudo consistente.
+- `GameSnapshot` recebe `now`, o que permite testar regras que dependem de data.
+- Enums são salvos como `String` cru (`kindRaw`, `modalityRaw`...). Nunca renomeie um raw value existente.
+- Campos novos em modelos SwiftData precisam de valor padrão para a migração automática funcionar.
 
-### Sincronização (app + backend + site)
-- **Plano:**
-  1. Modelos prontos para sincronizar. **Feito.**
-  2. Backend em Rust: Axum, SQLx e PostgreSQL. **Feito**, em `rust/backend`.
-     Login por código da conta pronto. Login com Apple e Google pronto, mas sem client IDs configurados ainda.
-  3. App conectado: login e sincronização. **Parcial:** contrato e motor prontos e testados. Faltam o cliente HTTP, o login e a tela.
-  4. Site em Svelte, com as regras em Rust compiladas para WebAssembly e o bichinho em SVG. **Feito**, em `web/`.
-     Hoje usa login por código da conta, e também Google ou login de desenvolvimento quando configurados. Hospedagem preparada para o Railway.
+### Regras compartilhadas com o site
+- O site calcula as mesmas regras com um WASM gerado a partir do Rust (a pasta `rust/rules` sumiu em 13/11/2026; o site usa o WASM já gerado).
+- Toda mudança nas regras do jogo precisa atualizar `MyAppTests/Fixtures/rules-fixtures.json`.
+  O site tem uma **cópia** desse arquivo em `web/fixtures/rules-fixtures.json`: mantenha as duas iguais.
+- O desenho do bichinho em `PetView.swift` é reproduzido no site (`web/src/components/Pet.svelte`) com as mesmas frações.
+  Ao mudar a arte aqui, mude lá também.
+
+### Sincronização
+- **Plano:** o backend e o site estão prontos. No app, contrato e motor estão prontos e testados.
+  Faltam o cliente HTTP, o login e a tela. O login principal do site é o código da conta (`POST /v1/auth/code`); ver a CLAUDE.md do backend.
 - Todo modelo SwiftData tem `syncID`, `updatedAt` e `deletedAt`.
   - **Ao editar** um registro existente, chame `touch()`.
   - **Para excluir**, use `softDelete()`. Nunca use `context.delete`.
@@ -171,8 +87,6 @@ web/                      site em Svelte 5 + Vite + TypeScript
 - Datas trafegam em milissegundos. `syncPrecision` trunca para evitar diferenças falsas.
 - Dinheiro trafega em centavos (`Decimal.cents` e `Decimal(cents:)`).
 - `SyncMaintenance.repairDuplicateIDs` roda ao abrir o app. Ele corrige UUIDs repetidos deixados pela migração de dados antigos.
-- Toda mudança nas regras do jogo precisa atualizar `rules-fixtures.json`.
-  Os testes em Swift, em Rust (`rust/rules`) e do site (pelo WASM) leem esse arquivo.
 
 ### Ícone do app
 - O ícone mostra o Filhote verde sobre fundo dourado, com uma moeda de "R$". A fonte é `AppIconView`.
@@ -182,12 +96,6 @@ web/                      site em Svelte 5 + Vite + TypeScript
 - O target usa `ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon`.
   A ferramenta de build settings não aceita esse nome, então ele foi definido direto no projeto.
 - visionOS ainda não tem ícone próprio, porque exige um ícone em camadas.
-
-- `GameSnapshot` é calculado a cada renderização a partir das consultas do SwiftData em `MainTabView`.
-  XP, conquistas e humor **não são salvos**: são derivados dos dados. Isso mantém tudo consistente.
-- `GameSnapshot` recebe `now`, o que permite testar regras que dependem de data.
-- Enums são salvos como `String` cru (`kindRaw`, `modalityRaw`...). Nunca renomeie um raw value existente.
-- Campos novos em modelos SwiftData precisam de valor padrão para a migração automática funcionar.
 
 ## Regras do jogo (especificação atual)
 
@@ -250,4 +158,3 @@ Itens para especificar melhor antes de implementar:
 - Datas ainda usam o formato do aparelho em alguns textos. Avaliar se devem ser fixadas em pt-BR.
 - Dois aparelhos que fizerem o cadastro inicial antes de sincronizar vão criar dois perfis. Hoje o app usa o mais antigo. Definir se os perfis devem ser mesclados.
 - Client IDs da Apple (Services ID para o site) e do Google.
-- Login com Apple no site: o backend já aceita o token, mas o site ainda não tem o botão.
